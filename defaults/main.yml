@@ -1,0 +1,299 @@
+---
+#
+# Required to be set
+# 
+
+sysadmin_email: null
+ispconfig_admin_password: null
+ispconfig_user_password: null
+
+server_cert_key: "/etc/letsencrypt/live/{{ ansible_fqdn }}/privkey.pem"
+server_cert: "/etc/letsencrypt/live/{{ ansible_fqdn }}/cert.pem"
+server_cert_full: "/etc/letsencrypt/live/{{ ansible_fqdn }}/fullchain.pem"
+server_cert_ca: "/etc/letsencrypt/live/{{ ansible_fqdn }}/privkey.pem"
+
+#
+# Variables from dependencies
+#
+
+# lukasic.mariadb
+mysql_root_password: "{{ mariadb_root_passwd }}"
+
+#
+# Apache Status
+#
+apache_status_acl: []
+apache_user_login: "{{ ispconfig_user_username }}"
+apache_user_passwd: "{{ ispconfig_user_password }}"
+
+#
+# PureFTPd
+#
+pureftpd_limit_recursion_files: "100000"
+pureftpd_limit_recursion_folders: "10000"
+pureftpd_ssl_cert_file: "{{ server_cert_full }}"
+pureftpd_ssl_key_file: "{{ server_cert_key }}"
+
+# see more in files/pureftpd/rc.local
+bugfix_deb10_rclocal_ignore_rlimit_data: "no"
+
+#
+# Postfix
+#
+postfix_ssl_key_file: "{{ server_cert_key }}"
+postfix_ssl_cert_file: "{{ server_cert }}"
+postfix_ssl_ca_file: "{{ server_cert_ca }}"
+
+postfix_postconf_defaults:
+  - name: mydestination
+    value: "{{ ansible_fqdn }}"
+  - name: virtual_alias_maps
+    value: proxy:mysql:/etc/postfix/mysql-virtual_forwardings.cf, proxy:mysql:/etc/postfix/mysql-virtual_email2email.cf
+  - name: smtpd_use_tls
+    value: "yes"
+  - name: smtpd_tls_key_file
+    value: "{{ postfix_ssl_key_file }}"
+  - name: smtpd_tls_cert_file
+    value: "{{ postfix_ssl_cert_file }}"
+  - name: smtpd_tls_CAfile
+    value: "{{ postfix_ssl_ca_file }}"
+  - name: inet_interfaces
+    value: "all"
+  - name: inet_protocols
+    value: "ipv4, ipv6"
+  - name: message_size_limit
+    value: "52428800"
+  - name: mailbox_size_limit
+    value: "0"
+  - name: recipient_delimiter
+    value: +
+  - name: append_dot_mydomain
+    value: "no"
+  - name: biff
+    value: "no"
+  - name: compatibility_level
+    value: "2"
+  - name: smtpd_tls_session_cache_database
+    value: btree:${data_directory}/smtpd_scache
+  - name: smtp_tls_session_cache_database
+    value: btree:${data_directory}/smtp_scache
+  - name: alias_maps
+    value: ""
+  - name: relayhost
+    value: ""
+  - name: myorigin
+    value: /etc/mailname
+  - name: smtpd_relay_restrictions
+    value: permit_mynetworks permit_sasl_authenticated defer_unauth_destination
+  # ispconfig
+  - name: receive_override_options
+    value: no_address_mappings
+  - name: content_filter
+    value: amavis:[127.0.0.1]:10024
+  - name: smtpd_sasl_type
+    value: dovecot
+  - name: smtpd_sasl_path
+    value: private/auth
+  - name: dovecot_destination_recipient_limit
+    value: "1"
+  - name: smtp_tls_exclude_ciphers
+    value: RC4, aNULL
+  - name: smtpd_tls_exclude_ciphers
+    value: RC4, aNULL
+  - name: smtpd_tls_mandatory_protocols
+    value: "!SSLv2, !SSLv3"
+  - name: smtpd_tls_protocols
+    value: "!SSLv2,!SSLv3"
+  - name: smtp_tls_protocols
+    value: "!SSLv2,!SSLv3"
+  - name: smtp_tls_security_level
+    value: may
+  - name: owner_request_special
+    value: "no"
+  - name: body_checks
+    value: regexp:/etc/postfix/body_checks
+  - name: nested_header_checks
+    value: regexp:/etc/postfix/nested_header_checks
+  - name: mime_header_checks
+    value: regexp:/etc/postfix/mime_header_checks
+  - name: header_checks
+    value: regexp:/etc/postfix/header_checks
+  - name: virtual_transport
+    value: dovecot
+  - name: maildrop_destination_recipient_limit
+    value: "1"
+  - name: maildrop_destination_concurrency_limit
+    value: "1"
+  - name: smtpd_client_message_rate_limit
+    value: "100"
+  - name: smtpd_client_restrictions
+    value: check_client_access mysql:/etc/postfix/mysql-virtual_client.cf
+  - name: smtpd_sender_restrictions
+    value: check_sender_access regexp:/etc/postfix/tag_as_originating.re , permit_mynetworks, permit_sasl_authenticated, check_sender_access mysql:/etc/postfix/mysql-virtual_sender.cf, check_sender_access regexp:/etc/postfix/tag_as_foreign.re
+  - name: smtpd_helo_restrictions
+    value: permit_sasl_authenticated, permit_mynetworks, check_helo_access regexp:/etc/postfix/helo_access, reject_invalid_hostname, reject_non_fqdn_hostname, reject_invalid_helo_hostname, reject_unknown_helo_hostname, check_helo_access regexp:/etc/postfix/blacklist_helo
+  - name: smtpd_helo_required
+    value: "yes"
+  - name: proxy_read_maps
+    value: $local_recipient_maps $mydestination $virtual_alias_maps $virtual_alias_domains $sender_bcc_maps $virtual_mailbox_maps $virtual_mailbox_domains $relay_recipient_maps $relay_domains $canonical_maps $sender_canonical_maps $recipient_canonical_maps $relocated_maps $transport_maps $mynetworks $smtpd_sender_login_maps
+  - name: smtpd_sender_login_maps
+    value: proxy:mysql:/etc/postfix/mysql-virtual_sender_login_maps.cf
+  - name: relay_recipient_maps
+    value: mysql:/etc/postfix/mysql-virtual_relayrecipientmaps.cf
+  - name: relay_domains
+    value: mysql:/etc/postfix/mysql-virtual_relaydomains.cf
+  - name: transport_maps
+    value: hash:/var/lib/mailman/data/transport-mailman, proxy:mysql:/etc/postfix/mysql-virtual_transports.cf
+  - name: smtpd_tls_security_level
+    value: may
+  - name: smtpd_recipient_restrictions
+    value: permit_mynetworks, permit_sasl_authenticated, reject_unauth_destination, reject_rbl_client zen.spamhaus.org, check_recipient_access mysql:/etc/postfix/mysql-virtual_recipient.cf, check_recipient_access mysql:/etc/postfix/mysql-virtual_policy_greylist.cf
+  - name: greylisting
+    value: check_policy_service inet:127.0.0.1:10023
+  - name: smtpd_restriction_classes
+    value: greylisting
+  - name: smtpd_sasl_authenticated_header
+    value: "yes"
+  - name: broken_sasl_auth_clients
+    value: "no"
+  - name: smtpd_sasl_auth_enable
+    value: "yes"
+  - name: sender_bcc_maps
+    value: proxy:mysql:/etc/postfix/mysql-virtual_outgoing_bcc.cf
+  - name: virtual_gid_maps
+    value: mysql:/etc/postfix/mysql-virtual_gids.cf
+  - name: virtual_uid_maps
+    value: mysql:/etc/postfix/mysql-virtual_uids.cf
+  - name: virtual_mailbox_base
+    value: /var/vmail
+  - name: virtual_mailbox_maps
+    value: proxy:mysql:/etc/postfix/mysql-virtual_mailboxes.cf
+  - name: virtual_mailbox_domains
+    value: proxy:mysql:/etc/postfix/mysql-virtual_domains.cf
+  - name: virtual_alias_domains
+    value: ""
+
+postfix_postconf_custom: []
+
+postfix_postconf: "{{ postfix_postconf_defaults + postfix_postconf_custom }}"
+
+postfix_packages:
+  - name: "postfix"
+    state: "latest"
+
+postfix_alias:
+  - local: "root@localhost"  
+    remote: "{{ sysadmin_email }}"
+  - local: "root@localhost.localdomain"      
+    remote: "{{ sysadmin_email }}"
+  - local: "root@{{ ansible_fqdn }}"
+    remote: "{{ sysadmin_email }}"
+
+#
+# Dovecot
+#
+dovecot_dh_params: "/etc/dovecot/dh.pem"
+dovecot_ssl_key_file: "{{ server_cert_key }}"
+dovecot_ssl_cert_file: "{{ server_cert_full }}"
+
+#
+# ISPConfig
+#
+ispconfig_url: "https://{{ ansible_fqdn }}:7777"
+ispconfig_admin_username: 'admin'
+ispconfig_user_username: "customer"
+
+ispconfig_installer_dir: "/root/.ispconfig"
+ispconfig_private_dir: "/var/local/lib/ispconfig/"
+
+ispconfig_server_params:
+  - ini_group: server
+    ini_option: loglevel
+    ini_value: "0"
+  - ini_group: web
+    ini_option: php_default_name
+    ini_value: PHP 7.3 (default)
+  - ini_group: web
+    ini_option: php_handler
+    ini_value: php-fpm
+  - ini_group: server
+    ini_option: backup_time
+    ini_value: "23:30"
+  - ini_group: server
+    ini_option: log_retention
+    ini_value: "5"
+  - ini_group: mail
+    ini_option: realtime_blackhole_list
+    ini_value: zen.spamhaus.org
+  - ini_group: mail
+    ini_option: overquota_notify_freq
+    ini_value: "3"
+  - ini_group: mail
+    ini_option: dkim_strength
+    ini_value: "4096"
+  - ini_group: mail
+    ini_option: reject_sender_login_mismatch
+    ini_value: "y"
+  - ini_group: web
+    ini_option: enable_ip_wildcard
+    ini_value: "n"
+
+ispconfig_system_params:
+  - ini_group: sites
+    ini_option: dbname_prefix
+    ini_value: ""  
+  - ini_group: sites
+    ini_option: dbuser_prefix
+    ini_value: ""
+  - ini_group: sites
+    ini_option: ftpuser_prefix
+    ini_value: ""
+  - ini_group: sites
+    ini_option: shelluser_prefix
+    ini_value: ""
+  - ini_group: sites
+    ini_option: webdavuser_prefix
+    ini_value: ""
+  - ini_group: sites
+    ini_option: phpmyadmin_url
+    ini_value: "https://{{ ansible_fqdn }}/phpmyadmin/"
+  - ini_group: mail
+    ini_option: webmail_url
+    ini_value: "https://{{ ansible_fqdn }}/webmail/"
+  - ini_group: mail
+    ini_option: admin_mail
+    ini_value: "{{ sysadmin_email }}"
+  - ini_group: mail
+    ini_option: admin_name
+    ini_value: "{{ sysadmin_email }}"
+  - ini_group: sites
+    ini_option: web_php_options
+    ini_value: "no,php-fpm"
+  - ini_group: misc
+    ini_option: min_password_length
+    ini_value: "12"
+
+
+#
+# apps part
+#
+server_site_base_dir: "/var/www/{{ ansible_fqdn }}"
+
+# 
+# phpMyAdmin Part
+#
+phpmyadmin_install_dir: "{{ server_site_base_dir }}/web/phpmyadmin"
+phpmyadmin_private_dir: "{{ server_site_base_dir }}/private/phpmyadmin"
+phpmyadmin_temp_dir: "{{ server_site_base_dir }}/tmp/phpmyadmin"
+
+phpmyadmin_mysql_username: '_phpmyadmin'
+phpmyadmin_mysql_database: '_phpmyadmin'
+
+#
+# roundcube part
+#
+roundcube_install_dir: "{{ server_site_base_dir }}/web/roundcube"
+roundcube_private_dir: "{{ server_site_base_dir }}/private/roundcube"
+
+roundcube_mysql_username: "_roundcube"
+roundcube_mysql_database: "_roundcube"

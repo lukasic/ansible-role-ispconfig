@@ -1,0 +1,26 @@
+---
+- name: restart apache2
+  service: 
+    name: apache2
+    state: restarted
+
+- name: reload apache2
+  service:
+    name: apache2
+    state: reloaded
+
+- name: restart postfix
+  service: 
+    name: postfix
+    state: restarted
+
+- name: restart dovecot
+  service: 
+    name: dovecot
+    state: restarted
+
+- name: restart pure-ftpd-mysql
+  service: 
+    name: pure-ftpd-mysql
+    state: restarted
+

@@ -1,0 +1,59 @@
+---
+- name: configure pure-ftpd
+  lineinfile:
+    dest: /etc/default/pure-ftpd-common
+    line: "{{ item.name }}={{ item.value }}"
+    regexp: "^{{ item.name }}="
+  loop:
+    - name: STANDALONE_OR_INETD
+      value: standalone
+    - name: VIRTUALCHROOT
+      value: "true"
+  notify: restart pure-ftpd-mysql
+
+- name: Generate Diffie-Hellman parameters
+  openssl_dhparam:
+    path: /etc/ssl/private/pure-ftpd-dhparams.pem
+    size: 2048
+  notify: restart pure-ftpd-mysql
+
+#
+# todo: bug - letsencrypt renew
+# fix with cron?
+#
+# better solution:
+# CertFileAndKey in config - requires recompilation
+#
+- name: create pureftpd cert file
+  shell: cat "{{ pureftpd_ssl_key_file }}" "{{ pureftpd_ssl_cert_file }}" > /etc/ssl/private/pure-ftpd.pem
+  notify: restart pure-ftpd-mysql
+
+- name: enable ftps
+  copy:
+    src: pureftpd/true-file
+    dest: /etc/pure-ftpd/conf/TLS
+  notify: restart pure-ftpd-mysql
+
+- name: copy config files
+  copy:
+    src: "pureftpd/{{ item }}"
+    dest: "/etc/pure-ftpd/conf/{{ item }}"
+  notify: restart pure-ftpd-mysql
+  loop:
+    - PassivePortRange
+
+- name: copy templated config files
+  template:
+    src: "pureftpd/{{ item }}.j2"
+    dest: "/etc/pure-ftpd/conf/{{ item }}"
+  notify: restart pure-ftpd-mysql
+  loop:
+    - LimitRecursion
+
+- name: fix pure-ftpd "out of memory bug"
+  copy:
+    src: pureftpd/rc.local
+    dest: /etc/rc.local
+    mode: 0755
+  when: bugfix_deb10_rclocal_ignore_rlimit_data == "yes"
+

@@ -1,0 +1,138 @@
+<?php
+
+$username = 'admin';
+$password = file_get_contents("{{ ispconfig_api_admin_password }}");
+$password = str_replace("\n","",$password);
+
+$soap_location = 'https://{{ ansible_fqdn }}:7777/remote/index.php';
+$soap_uri = 'https://{{ ansible_fqdn }}:7777/remote/';
+
+$client = new SoapClient(null, array(
+    'location' => $soap_location,
+    'uri'      => $soap_uri,
+    'trace' => 1,
+    'exceptions' => 1
+));
+
+$cust_passwd = file_get_contents("{{ ispconfig_user_password }}");
+$cust_passwd = str_replace("\n","",$cust_passwd);
+
+if (strlen($cust_passwd) < 8) {
+    echo "Customer password is too short.";
+    exit(1);
+}
+
+try {
+    if($session_id = $client->login($username,$password)) {
+        //echo 'Logged successfull. Session ID:'.$session_id.'<br />';
+    }
+
+    //* Set the function parameters.
+    $params = array(
+        'company_name' => '',
+        'contact_name' => 'Customer',
+        'customer_no' => '1',
+        'vat_id' => '',
+        'street' => '',
+        'zip' => '',
+        'city' => '',
+        'state' => 'Czech Republic',
+        'country' => 'CZ',
+        'telephone' => '',
+        'mobile' => '',
+        'fax' => '',
+        'email' => '{{ sysadmin_email }}',
+        'internet' => '',
+        'icq' => '',
+        'notes' => '',
+        'default_mailserver' => 0,
+        'mail_servers' => 1,
+        'limit_maildomain' => -1,
+        'limit_mailbox' => -1,
+        'limit_mailalias' => -1,
+        'limit_mailaliasdomain' => -1,
+        'limit_mailforward' => -1,
+        'limit_mailcatchall' => -1,
+        'limit_mailrouting' => -1,
+        'limit_mailfilter' => -1,
+        'limit_fetchmail' => -1,
+        'limit_mailquota' => -1,
+        'limit_spamfilter_wblist' => -1,
+        'limit_spamfilter_user' => -1,
+        'limit_spamfilter_policy' => -1,
+        'default_xmppserver' => 0,
+        'limit_xmpp_domain' => 0,
+        'limit_xmpp_user' => 0,
+        'limit_xmpp_muc' => 'n',
+        'limit_xmpp_anon' => 'n',
+        'default_webserver' => '0',
+        'web_servers' => 1,
+        'limit_web_ip' => '',
+        'limit_web_domain' => -1,
+        'limit_web_quota' => -1,
+        'web_php_options' => 'no,php-fpm',
+        'limit_cgi' => 'n',
+        'limit_ssi' => 'n',
+        'limit_perl' => 'n',
+        'limit_ruby' => 'n',
+        'limit_python' => 'n',
+        'force_suexec' => 'y',
+        'limit_hterror' => 'y',
+        'limit_wildcard' => 'y',
+        'limit_ssl' => 'y',
+        'limit_ssl_letsencrypt' => 'y',
+        'limit_web_subdomain' => -1,
+        'limit_web_aliasdomain' => -1,
+        'limit_ftp_user' => -1,
+        'limit_shell_user' => 0,
+        'ssh_chroot' => 'no',
+        'limit_webdav_user' => 0,
+        'limit_backup' => 'n',
+        'limit_directive_snippets' => 'n',
+        'limit_aps' => '0',
+        'default_dnsserver' => 0,
+        'db_servers' => '1',
+        'limit_dns_zone' => 0,
+        'limit_dns_slave_zone' => 0,
+        'limit_dns_record' => 0,
+        'default_dbserver' => '0',
+        'dns_servers' => '',
+        'limit_database' => -1,
+        'limit_database_user' => -1,
+        'limit_database_quota' => -1,
+        'limit_cron' => -1,
+        'limit_cron_type' => 'url',
+        'limit_cron_frequency' => 1,
+        'limit_traffic_quota' => -1,
+        'limit_client' => 0, // If this value is > 0, then the client is a reseller
+        'limit_domainmodule' => '0',
+        'limit_mailinglist' => '0',
+        'limit_openvz_vm' => '0',
+        'limit_openvz_vm_template_id' => '0',
+        'parent_client_id' => 0,
+        'username' => 'customer',
+        'password' => $cust_passwd,
+        'language' => 'cz',
+        'usertheme' => 'default',
+        'template_master' => 0,
+        'template_additional' => '',
+        'created_at' => 0
+    );
+
+    // this id has to be 0 if the client shall not be assigned to admin or
+    // if the client is a reseller
+    $reseller_id = 0;
+
+    $affected_rows = $client->client_add($session_id, $reseller_id, $params);
+
+    echo "Client: ".$affected_rows." created.<br>";
+
+    if($client->logout($session_id)) {
+        //echo 'Logged out.<br />';
+    }
+
+} catch (SoapFault $e) {
+    echo $client->__getLastResponse();
+    echo 'SOAP Error: '.$e->getMessage();
+    exit(1);
+}

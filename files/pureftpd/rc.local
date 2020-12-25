@@ -1,0 +1,21 @@
+#!/bin/bash
+
+#
+# Ak PureFTPd padá na nedostatku pamäti:
+#  [349851.014038] mmap: pure-ftpd-mysql (17222): VmData 16805888 exceed data ulimit 16777216. Update
+#  limits or use boot option ignore_rlimit_data.
+#
+# Ide o bug v samotnom pure-ftpd. Jednotlivé spojenia s klientmi sú nezávislé procesy vznikajúce forkom
+# z hlavného procesu. Zatiaľ čo hlavný proces systémové limity dodržuje, jeho potomkovia už nie. Preto
+# nefunguje nastavenie limitu data segmentu v /etc/security/limits.conf
+#
+# Možnosti:
+# - rekompilovať balík
+# - použiť verziu, ktorá má zabudovanú podporu libsodium (podľa kódu to pamäť zväčší zo 16 na 40 KB)
+# - ignorovať rlimit_data
+#
+# Nastavenie ignore_rlimit_data je možné cez grub.conf (čisté), alebo rc.local (prasácke).
+# Keďže toto je dočasný hack, stačí to upraviť po spustení systému cez rc.local.
+#
+
+echo Y > /sys/module/kernel/parameters/ignore_rlimit_data

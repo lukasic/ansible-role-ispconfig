@@ -1,0 +1,122 @@
+---
+#
+# Preparations - check, cleanup, download sources
+# Determine what to do - install, update, or just continue to reconfiguration
+#
+- name: Check if ISPConfig is installed
+  stat: 
+    path: "{{ ispconfig_private_dir }}/installed-version.txt"
+  register: ispconfig_version
+
+- set_fact:
+    ispconfig_first_install: "{{ ispconfig_version.stat.exists == false }}"
+
+- name: Ensure {{ ispconfig_installer_dir }} exists
+  file:
+    path: "{{ ispconfig_installer_dir }}"
+    state: directory
+
+- name: Fix regression - broken install
+  file:
+    path: "{{ ispconfig_installer_dir }}/ISPConfig-3-stable.tar.gz"
+    state: absent
+  when: ispconfig_first_install
+
+- name: Download latest ISPConfig
+  get_url:
+    url: http://www.ispconfig.org/downloads/ISPConfig-3-stable.tar.gz
+    dest: "{{ ispconfig_installer_dir }}"
+  register: ispconfig3_src
+
+- set_fact:
+    ispconfig_update: "{{ ispconfig_version.stat.exists and ispconfig3_src.changed }}"
+
+- name: Remove old installer if exists
+  file:
+    path: "{{ ispconfig_installer_dir }}/ispconfig3_install"
+    state: absent
+  when: ispconfig_first_install or ispconfig_update
+
+- name: Extract latest ISPConfig
+  unarchive:
+    src: "{{ ispconfig_installer_dir }}/ISPConfig-3-stable.tar.gz"
+    dest: "{{ ispconfig_installer_dir }}"
+    remote_src: yes
+  when: ispconfig_first_install or ispconfig_update
+
+#
+# Cure vanila config files
+#
+- name: Cure ISPConfig postfix template
+  lineinfile:
+    dest: "{{ ispconfig_installer_dir }}/ispconfig3_install/install/tpl/debian_postfix.conf.master"
+    regexp: "^{{ item.name }}\\s*="
+    state: absent
+  loop: "{{ postfix_postconf }}"
+  when: ispconfig_first_install or ispconfig_update
+
+- name: Replace dovecot config with ours
+  template:
+    src: dovecot/dovecot.conf.j2
+    dest: "{{ ispconfig_installer_dir }}/ispconfig3_install/install/tpl/debian_dovecot2.conf.master"
+  when: ispconfig_first_install or ispconfig_update
+
+#
+# Install or Update ISPConfig
+#
+- name: Create ISPConfig autoinstall.ini
+  template:
+    src: "ispconfig/autoinstall.ini.j2"
+    dest: "{{ ispconfig_installer_dir }}/ispconfig3_install/install/autoinstall.ini"
+  when: ispconfig_first_install or ispconfig_update
+
+- name: Install ISPConfig
+  command: php install.php --autoinstall=autoinstall.ini
+  args:
+    chdir: "{{ ispconfig_installer_dir }}/ispconfig3_install/install"
+  when: ispconfig_first_install
+  notify: restart apache2
+
+- name: Update ISPConfig
+  command: php update.php --autoinstall=autoinstall.ini
+  args:
+    chdir: "{{ ispconfig_installer_dir }}/ispconfig3_install/install"
+  when: ispconfig_update
+  notify: restart apache2
+
+#
+# Create API user
+#
+- name: Generate API users passwords
+  password_file:
+    path: "{{ ispconfig_private_dir }}/secrets/{{ item.name }}"
+    set_fact: "{{ item.name }}"
+    length: "{{ item.length }}"
+    state: present
+  with_items:
+    - name: ispconfig_api_admin_password
+      length: 24
+    - name: ispconfig_api_roundcube_password
+      length: 24
+
+- name: Deploy post-install ISPConfig scripts
+  template: 
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  loop:
+    - src: "ispconfig/create-api-users.sql.j2"
+      dest: "{{ ispconfig_installer_dir }}/ispconfig-create-api-users.sql"
+  when: ispconfig_first_install
+
+- name: Create ISPConfig API users
+  shell: cat {{ ispconfig_installer_dir }}/ispconfig-create-api-users.sql | mysql _dbispconfig
+  when: ispconfig_first_install
+
+#
+# Mark ISPConfig as Installed
+#
+- name: Create {{ ispconfig_private_dir }}/installed-version.txt file
+  get_url:
+    url: https://www.ispconfig.org/downloads/ispconfig3_version.txt
+    dest: "{{ ispconfig_private_dir }}/installed-version.txt"
+  when: ispconfig_first_install or ispconfig_update

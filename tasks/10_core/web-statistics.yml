@@ -1,0 +1,16 @@
+---
+- name: install web statistics tools
+  apt:
+    pkg:
+      - webalizer
+      - awstats
+      - geoip-database
+      - libclass-dbi-mysql-perl
+      - libtimedate-perl
+    state: latest
+
+- name: delete awstats cron file
+  file:
+    path: /etc/cron.d/awstats
+    state: absent
+

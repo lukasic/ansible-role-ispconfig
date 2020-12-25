@@ -1,0 +1,120 @@
+---
+#
+# load or generate secrets
+#
+- name: ensure we have roundcube secrets
+  password_file:
+    path: "{{ roundcube_private_dir }}/{{ item.name }}"
+    set_fact: "{{ item.name }}"
+    length: "{{ item.length }}"
+    state: present
+  with_items:
+    - name: roundcube_des_key
+      length: 48
+    - name: roundcube_mysql_password
+      length: 16
+
+#
+# create mysql database and user for roundcube
+#
+- name: create database user for roundcube
+  ispconfig_database_user:
+    api_url: "{{ ispconfig_url }}"
+    api_user: "{{ ispconfig_admin_username }}"
+    api_pass: "{{ ispconfig_admin_password }}"
+    db_user: "{{ roundcube_mysql_username }}"
+    db_pass: "{{ roundcube_mysql_password }}"
+
+- name: create database for roundcube
+  ispconfig_database:
+    api_url: "{{ ispconfig_url }}"
+    api_user: "{{ ispconfig_admin_username }}"
+    api_pass: "{{ ispconfig_admin_password }}"
+    db_name: "{{ roundcube_mysql_database }}"
+    db_user: "{{ roundcube_mysql_username }}"
+    site: "{{ ansible_fqdn }}"
+
+- name: do some ispconfig server magic
+  shell: /usr/local/ispconfig/server/server.sh
+
+- name: test roundcube is installed
+  stat:
+    path: "{{ roundcube_private_dir }}/installed.txt"
+  register: roundcube_installed
+
+- name: fix regression - broken install
+  file:
+    path: "{{ item }}"
+    state: absent
+  when: roundcube_installed.stat.exists == false
+  with_items:
+    - "{{ roundcube_private_dir }}/roundcubemail-latest.tar.gz"
+    - "{{ roundcube_install_dir }}"
+
+#
+# todo: latest url
+#
+- name: download roundcube
+  get_url:
+    url: https://github.com/roundcube/roundcubemail/releases/download/1.4.9/roundcubemail-1.4.9-complete.tar.gz
+    dest: "{{ roundcube_private_dir }}/roundcubemail-latest.tar.gz"
+  register: roundcube_src
+
+- name: remove old roundcube
+  file:
+    path: "{{ roundcube_install_dir }}"
+    state: absent
+  when: roundcube_src.changed
+
+- name: ensure roundcube directories exists
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "{{ roundcube_install_dir }}"
+
+- name: extract latest roundcube
+  unarchive:
+    src: "{{ roundcube_private_dir }}/roundcubemail-latest.tar.gz"
+    dest: "{{ roundcube_install_dir }}"
+    remote_src: yes
+    extra_opts: [--strip-components=1]
+  when: roundcube_src.changed
+
+- name: install config file
+  template:
+    src: roundcube/config.inc.php.j2
+    dest: "{{ roundcube_install_dir }}/config/config.inc.php"
+
+- name: initialize roundcube database
+  mysql_db:
+    name: "{{ roundcube_mysql_database }}"
+    target: "{{ roundcube_install_dir }}/SQL/mysql.initial.sql"
+    state: import
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  when: roundcube_installed.stat.exists == false
+
+- name: mark roundcube as installed
+  file:
+    state: touch
+    path: "{{ roundcube_private_dir }}/installed.txt"
+  when: roundcube_installed.stat.exists == false
+
+- name: create link roundcube -> webmail
+  file:
+    state: link
+    src: "{{ roundcube_install_dir }}"
+    dest: "{{ roundcube_install_dir }}/../webmail"
+
+- stat:
+    path: "{{ roundcube_install_dir }}/../"
+  register: roundcube_dir_stat
+
+- name: set perms
+  shell: "{{ item }}"
+  args:
+    warn: no
+  with_items:
+    - chown -R {{ roundcube_dir_stat.stat.pw_name }}:client1 {{ roundcube_install_dir }}
+    - chown -R {{ roundcube_dir_stat.stat.pw_name }}:client1 {{ roundcube_install_dir }}/../webmail
+

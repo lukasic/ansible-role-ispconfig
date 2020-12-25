@@ -1,0 +1,51 @@
+---
+#
+# Custom API Functions
+#
+- name: Deploy custom API functions
+  copy:
+    src: ispconfig/custom.inc.php
+    dest: /usr/local/ispconfig/interface/lib/classes/remote.d/custom.inc.php
+
+#
+# Create ISPConfig site and configure
+#
+- name: Create ISPConfig Apps Site - https://{{ ansible_fqdn }}/
+  ispconfig_web_domain:
+    api_url: "{{ ispconfig_url }}"
+    api_user: "{{ ispconfig_admin_username }}"
+    api_pass: "{{ ispconfig_admin_password }}"
+    domain: "{{ ansible_fqdn }}"
+  register: apps_site
+
+- name: Configure Apps Site
+  ispconfig_web_domain_php_ini:
+    api_url: "{{ ispconfig_url }}"
+    api_user: "{{ ispconfig_admin_username }}"
+    api_pass: "{{ ispconfig_admin_password }}"
+    domain: "{{ ansible_fqdn }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+  loop:
+    - option: "upload_max_filesize"
+      value: "512M"
+    - option: "post_max_size"
+      value: "512M"
+    - option: "max_execution_time"
+      value: "900"
+    - option: "max_input_time"
+      value: "900"
+
+- name: Configure apache directives for Apps site
+  ispconfig_web_domain_apache_directives:
+    api_url: "{{ ispconfig_url }}"
+    api_user: "{{ ispconfig_admin_username }}"
+    api_pass: "{{ ispconfig_admin_password }}"
+    domain: "{{ ansible_fqdn }}"
+    directives: |
+      TimeOut 1800
+
+- name: Do some ISPConfig server magic
+  shell: /usr/local/ispconfig/server/server.sh
+  when: apps_site.changed
+

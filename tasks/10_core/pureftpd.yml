@@ -1,0 +1,7 @@
+---
+- name: install pure-ftpd
+  apt:
+    pkg:
+      - pure-ftpd-common
+      - pure-ftpd-mysql
+    state: latest

@@ -1,0 +1,12 @@
+---
+- name: install snapd
+  apt:
+    name:
+      - snapd
+    state: latest
+
+- name: Install certbot
+  snap:
+    name: certbot
+    classic: yes
+    state: present

@@ -1,0 +1,29 @@
+<IfModule mod_status.c>
+
+    <Location /server-status>
+        SetHandler server-status
+
+        Order deny,allow
+        Deny from all
+        Allow from 127.0.0.1 ::1
+
+        {% for ip in apache_status_acl %}
+        Allow from {{ ip }}
+        {% endfor %}
+
+        Satisfy any
+        AuthType Basic
+        AuthName "server status"
+        AuthBasicProvider file
+        Require valid-user
+        AuthUserFile /etc/apache2/restrict.htpasswd
+    </Location>
+
+    ExtendedStatus On
+    SeeRequestTail On
+
+    <IfModule mod_proxy.c>
+        ProxyStatus On
+    </IfModule>
+
+</IfModule>

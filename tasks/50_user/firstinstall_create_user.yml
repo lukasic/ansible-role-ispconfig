@@ -1,0 +1,14 @@
+---
+- name: Deploy post-install ISPConfig scripts
+  template: 
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  loop:
+    - src: "ispconfig/create-client.php.j2"
+      dest: "{{ ispconfig_installer_dir }}/ispconfig-create-client.php"
+  when: ispconfig_first_install
+
+- name: Create ISPConfig client user
+  shell: php {{ ispconfig_installer_dir }}/ispconfig-create-client.php
+  when: ispconfig_first_install
+

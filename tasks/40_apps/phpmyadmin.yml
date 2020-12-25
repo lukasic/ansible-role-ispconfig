@@ -1,0 +1,126 @@
+---
+#
+# load or generate secrets
+#
+- name: ensure we have phpmyadmin secrets
+  password_file:
+    path: "{{ phpmyadmin_private_dir }}/{{ item.name }}"
+    set_fact: "{{ item.name }}"
+    length: "{{ item.length }}"
+    state: present
+  with_items:
+    - name: phpmyadmin_blowfish_secret
+      length: 48
+    - name: phpmyadmin_mysql_password
+      length: 16
+
+#
+# create mysql database and user for phpmyadmin
+#
+- name: create database user for phpmyadmin
+  ispconfig_database_user:
+    api_url: "{{ ispconfig_url }}"
+    api_user: "{{ ispconfig_admin_username }}"
+    api_pass: "{{ ispconfig_admin_password }}"
+    db_user: "{{ phpmyadmin_mysql_username }}"
+    db_pass: "{{ phpmyadmin_mysql_password }}"
+
+- name: create database for phpmyadmin
+  ispconfig_database:
+    api_url: "{{ ispconfig_url }}"
+    api_user: "{{ ispconfig_admin_username }}"
+    api_pass: "{{ ispconfig_admin_password }}"
+    db_name: "{{ phpmyadmin_mysql_database }}"
+    db_user: "{{ phpmyadmin_mysql_username }}"
+    site: "{{ ansible_fqdn }}"
+
+- name: do some ispconfig server magic
+  shell: /usr/local/ispconfig/server/server.sh
+
+#
+# phpmyadmin installation / update
+#
+
+- name: ensure {{ phpmyadmin_private_dir }} exists
+  file:
+    path: {{ phpmyadmin_private_dir }}
+    state: dir
+
+- name: test phpmyadmin is installed
+  stat: 
+    path: "{{ phpmyadmin_private_dir }}/installed.txt"
+  register: phpmyadmin_installed
+
+- name: fix regression - broken install
+  file:
+    path: "{{ item }}"
+    state: absent
+  when: phpmyadmin_installed.stat.exists == false
+  with_items:
+    - "{{ phpmyadmin_private_dir }}/phpMyAdmin-latest-all-languages.tar.gz"
+    - "{{ phpmyadmin_install_dir }}"
+
+- name: download phpMyAdmin
+  get_url:
+    url: https://www.phpmyadmin.net/downloads/phpMyAdmin-latest-all-languages.tar.gz
+    dest: "{{ phpmyadmin_private_dir }}/phpMyAdmin-latest-all-languages.tar.gz"
+  register: phpmyadmin_src
+
+- name: remove old phpMyAdmin
+  file:
+    path: "{{ phpmyadmin_install_dir }}"
+    state: absent
+  when: phpmyadmin_src.changed
+
+- name: ensure phpmyadmin directories exists
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "{{ phpmyadmin_temp_dir }}"
+    - "{{ phpmyadmin_install_dir }}"
+
+- name: extract latest phpmyadmin
+  unarchive:
+    src: "{{ phpmyadmin_private_dir }}/phpMyAdmin-latest-all-languages.tar.gz"
+    dest: "{{ phpmyadmin_install_dir }}"
+    remote_src: yes
+    extra_opts: [--strip-components=1]
+  when: phpmyadmin_src.changed
+
+- name: install config file
+  template:
+    src: phpmyadmin/config.inc.php.j2
+    dest: "{{ phpmyadmin_install_dir }}/config.inc.php"
+
+- name: cure phpmyadmin init sql file
+  command: sed -i -e '17,22d' "{{ phpmyadmin_install_dir }}/sql/create_tables.sql"
+  when: phpmyadmin_installed.stat.exists == false
+
+- name: initialize phpmyadmin database
+  mysql_db:
+    name: "{{ phpmyadmin_mysql_database }}"
+    target: "{{ phpmyadmin_install_dir }}/sql/create_tables.sql"
+    state: import
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  when: phpmyadmin_installed.stat.exists == false
+
+- name: mark phpmyadmin as installed
+  file:
+    state: touch
+    path: "{{ phpmyadmin_private_dir }}/installed.txt"
+  when: phpmyadmin_installed.stat.exists == false
+
+- stat:
+    path: "{{ phpmyadmin_install_dir }}/../"
+  register: phpmyadmin_dir_stat
+
+# todo: change to ansible chmod
+- name: set perms
+  shell: "{{ item }}"
+  args:
+    warn: no
+  with_items:
+    - chown -R {{ phpmyadmin_dir_stat.stat.pw_name }}:client1 {{ phpmyadmin_install_dir }}
+    - chown -R {{ phpmyadmin_dir_stat.stat.pw_name }}:client1 {{ phpmyadmin_temp_dir }}
+

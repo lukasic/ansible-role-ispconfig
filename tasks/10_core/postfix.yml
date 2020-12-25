@@ -1,0 +1,11 @@
+---
+- name: install postfix
+  apt: 
+    name: "postfix"
+    state: "latest"
+    install_recommends: yes
+
+- name: install postfix-mysql
+  apt: 
+    name: "postfix-mysql"
+    state: "latest"

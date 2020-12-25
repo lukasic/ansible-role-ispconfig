@@ -1,0 +1,38 @@
+---
+- name: install quota
+  apt:
+    name:
+      - quota
+      - quotatool
+    state: latest
+
+- name: install python dependencies for mountopts module
+  pip:
+    name: fstab
+
+- name: reconfigure fstab with quota options
+  mountopts:
+    name: /
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+  with_items:
+    - option: usrjquota
+      value: quota.user
+    - option: grpjquota
+      value: quota.group
+    - option: jqfmt
+      value: vfsv0
+  register: fstab_quota
+
+- name: "Remount /"
+  command: mount -o remount /
+  when: fstab_quota.changed
+
+- name: 'quota recalc'
+  command: 'quotacheck -avugm'
+  when: fstab_quota.changed
+
+- name: 'set quota on'
+  command: 'quotaon -avug'
+  when: fstab_quota.changed
+

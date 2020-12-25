@@ -1,0 +1,13 @@
+---
+- name: Disable dash as /bin/sh, use bash instead
+  debconf:
+    name: dash
+    question: dash/sh
+    value: 'false'
+    vtype: boolean
+  register: dash_debconf
+
+- name: reconfigure dash
+  command: dpkg-reconfigure -f noninteractive dash
+  when: dash_debconf.changed
+

@@ -1,0 +1,96 @@
+listen = *,[::]
+protocols = imap pop3
+auth_mechanisms = plain login
+disable_plaintext_auth = no
+log_timestamp = "%Y-%m-%d %H:%M:%S "
+mail_privileged_group = vmail
+
+ssl = yes
+ssl_cert = <{{ dovecot_ssl_cert_file }}
+ssl_key = <{{ dovecot_ssl_key_file }}
+ssl_dh = <{{ dovecot_dh_params }}
+ssl_min_protocol = TLSv1.2
+
+mail_max_userip_connections = 100
+
+passdb {
+  args = /etc/dovecot/dovecot-sql.conf
+  driver = sql
+}
+
+userdb {
+  driver = prefetch
+}
+
+userdb {
+  args = /etc/dovecot/dovecot-sql.conf
+  driver = sql
+}
+
+plugin {
+  quota = dict:user::file:/var/vmail/%d/%n/.quotausage
+  sieve=/var/vmail/%d/%n/.sieve
+  sieve_max_redirects = 25
+}
+
+service auth {
+  unix_listener /var/spool/postfix/private/auth {
+    group = postfix
+    mode = 0660
+    user = postfix
+  }
+  unix_listener auth-userdb {
+    group = vmail
+    mode = 0600
+    user = vmail
+  }
+  user = root
+}
+
+service lmtp {
+  unix_listener /var/spool/postfix/private/dovecot-lmtp {
+   group = postfix
+   mode = 0600
+   user = postfix
+   # For higher volume sites, it may be desirable to increase the number of active listener processes.
+   # A range of 5 to 20 is probably good for most sites
+#   process_min_avail = 5
+  }
+}
+
+service imap-login {
+  client_limit = 1000
+  process_limit = 512
+}
+
+protocol imap {
+  mail_plugins = quota imap_quota
+}
+
+protocol pop3 {
+  pop3_uidl_format = %08Xu%08Xv
+  mail_plugins = quota
+}
+
+protocol lda {
+  postmaster_address = postmaster@{{ ansible_fqdn }}
+    mail_plugins = sieve quota
+}
+
+protocol lmtp {
+  postmaster_address = postmaster@{{ ansible_fqdn }}
+  mail_plugins = quota sieve
+}
+
+service stats {
+  unix_listener stats-reader {
+    user = vmail
+    group = vmail
+    mode = 0660
+  }
+  unix_listener stats-writer {
+    user = vmail
+    group = vmail
+    mode = 0660
+  }
+}

@@ -1,0 +1,56 @@
+---
+#
+# Library dependencies
+#
+- name: Install python dependencies
+  apt:
+    pkg:
+      - python-requests
+      - python3-requests
+
+#
+# Configure ISPConfig
+#
+- name: Configure ISPConfig Server Params
+  ispconfig_server:
+    mysql_user: _ispconfig
+    mysql_pass: "{{ mysql_ispconfig_password }}"
+    mysql_dbname: _dbispconfig
+    server: "{{ ansible_fqdn }}"
+    ini_group: "{{ item.ini_group }}"
+    ini_option: "{{ item.ini_option }}"
+    ini_value: "{{ item.ini_value }}"
+  with_items: "{{ ispconfig_server_params }}"
+
+- name: Configure ispconfig system params
+  ispconfig_system:
+    mysql_user: _ispconfig
+    mysql_pass: "{{ mysql_ispconfig_password }}"
+    mysql_dbname: _dbispconfig
+    server: "{{ ansible_fqdn }}"
+    ini_group: "{{ item.ini_group }}"
+    ini_option: "{{ item.ini_option }}"
+    ini_value: "{{ item.ini_value }}"
+  with_items: "{{ ispconfig_system_params }}"
+
+- name: Configure ISPConfig PHP versions
+  ispconfig_server_php:
+    mysql_user: _ispconfig
+    mysql_pass: "{{ mysql_ispconfig_password }}"
+    mysql_dbname: _dbispconfig
+    php_version: "{{ php_versions[item.version].version }}"
+  loop: "{{ php }}"
+
+- name: Disable ISPConfig IDS
+  ini_file:
+    path: /usr/local/ispconfig/security/security_settings.ini
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+  with_items:
+    - section: "ids"
+      option: "ids_anon_enabled"
+      value: "no"
+    - section: "ids"
+      option: "ids_user_enabled"
+      value: "no"

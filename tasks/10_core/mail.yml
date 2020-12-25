@@ -1,0 +1,68 @@
+---
+- name: install archive utilities
+  apt:
+    state: latest
+    pkg:
+      - unzip
+      - bzip2
+      - arj
+      - nomarch
+      - lzop
+      - cabextract
+      - p7zip
+      - p7zip-full
+      - lrzip
+      - zip
+
+- name: install dovecot
+  apt:
+    state: latest
+    pkg:
+      - dovecot-imapd
+      - dovecot-pop3d
+      - dovecot-mysql
+      - dovecot-sieve
+      - dovecot-lmtpd
+
+- name: install getmail4
+  apt:
+    state: latest
+    pkg: getmail4
+
+- name: install postgrey
+  apt:
+    state: latest
+    pkg: postgrey
+
+- name: install amavis
+  apt:
+    state: latest
+    pkg:
+      - amavisd-new
+
+- name: install clamav
+  apt:
+    state: latest
+    pkg:
+      - clamav
+      - clamav-daemon
+
+- name: install spamassassin
+  apt:
+    pkg:
+      - spamassassin
+
+#- name: copy our dovecot.conf
+#  template:
+#    src: dovecot/dovecot.conf.j2
+#    dest: "/etc/dovecot/dovecot.conf"
+#  notify: restart dovecot
+
+# 
+# SA is used through amavis
+# 
+- name: stop and disable spamassassin
+  systemd:
+    name: spamassassin
+    state: stopped
+    enabled: false

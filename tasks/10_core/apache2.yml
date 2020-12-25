@@ -1,0 +1,79 @@
+---
+- name: install apache
+  apt:
+    state: latest
+    name:
+      - apache2
+      - apache2-suexec-pristine
+      - apache2-utils
+      - imagemagick
+      - libapache2-mod-fcgid
+      - libruby
+      - mcrypt
+  notify: restart apache2
+
+- name: remove apache2-doc
+  apt:
+    state: absent
+    name: apache2-doc
+  notify: reload apache2
+
+- name: install apache mods
+  apt:
+    state: absent
+    name:
+      - libapache2-mod-passenger
+      - libapache2-mod-python
+      - libapache2-mod-php
+
+- name: install ansible dependencies
+  apt:
+    pkg: python-passlib
+
+- name: disable apache modules
+  apache2_module:
+    name: "{{ item }}"
+    state: absent
+  loop:
+    - prefork
+  notify: reload apache2
+
+- name: enable apache modules
+  apache2_module:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - http2
+    - rewrite
+    - ssl
+    - actions
+    - include
+    - dav_fs
+    - dav
+    - auth_digest
+    - cgid # not cgi!
+    - proxy_fcgi
+    - headers
+    - alias
+    - suexec
+    - proxy_balancer
+    - proxy_http
+    - proxy
+    - expires
+  notify: reload apache2
+
+- template:
+    src: apache2/status.conf.j2
+    dest: /etc/apache2/mods-available/status.conf
+  notify: reload apache2
+
+- name: htpasswd for server-status
+  htpasswd:
+    path: /etc/apache2/restrict.htpasswd
+    name: "{{ apache_user_login }}"
+    password: "{{ apache_user_passwd }}"
+    owner: root
+    group: root
+    mode: 0644
+  notify: reload apache2
+
