@@ -6,6 +6,10 @@ import io
 import configparser
 import requests
 
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+
 class ISPConfigApi:
     headers = {
         'Content-Type': 'application/json'

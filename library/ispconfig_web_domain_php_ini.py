@@ -6,6 +6,10 @@ import io
 import requests
 import json
 
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+
 def parse_config(raw_data):
     if not raw_data:
         return {}
