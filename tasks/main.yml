@@ -24,12 +24,14 @@
 - name: install&configure web statistics tools
   include_tasks: 10_core/web-statistics.yml
 
+
 - name: install ispconfig
   include_tasks: '{{ item }}'
   loop:
     - 20_ispconfig/00_secrets.yml
     - 20_ispconfig/10_install_or_update.yml
     - 20_ispconfig/20_configure.yml
+    - 20_ispconfig/21_create_api_user.yml
     - 20_ispconfig/30_apps_site.yml
     - 20_ispconfig/40_ssl.yml
 

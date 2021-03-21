@@ -13,16 +13,16 @@
 - name: Create ISPConfig Apps Site - https://{{ ansible_fqdn }}/
   ispconfig_web_domain:
     api_url: "{{ ispconfig_url }}"
-    api_user: "{{ ispconfig_admin_username }}"
-    api_pass: "{{ ispconfig_admin_password }}"
+    api_user: "{{ ispconfig_api_admin_username }}"
+    api_pass: "{{ ispconfig_api_admin_password }}"
     domain: "{{ ansible_fqdn }}"
   register: apps_site
 
 - name: Configure Apps Site
   ispconfig_web_domain_php_ini:
     api_url: "{{ ispconfig_url }}"
-    api_user: "{{ ispconfig_admin_username }}"
-    api_pass: "{{ ispconfig_admin_password }}"
+    api_user: "{{ ispconfig_api_admin_username }}"
+    api_pass: "{{ ispconfig_api_admin_password }}"
     domain: "{{ ansible_fqdn }}"
     option: "{{ item.option }}"
     value: "{{ item.value }}"
@@ -39,8 +39,8 @@
 - name: Configure apache directives for Apps site
   ispconfig_web_domain_apache_directives:
     api_url: "{{ ispconfig_url }}"
-    api_user: "{{ ispconfig_admin_username }}"
-    api_pass: "{{ ispconfig_admin_password }}"
+    api_user: "{{ ispconfig_api_admin_username }}"
+    api_pass: "{{ ispconfig_api_admin_password }}"
     domain: "{{ ansible_fqdn }}"
     directives: |
       TimeOut 1800

@@ -213,6 +213,7 @@ dovecot_ssl_cert_file: "{{ server_cert_full }}"
 ispconfig_url: "https://{{ ansible_fqdn }}:7777"
 ispconfig_admin_username: 'admin'
 ispconfig_user_username: "customer"
+ispconfig_api_admin_username: 'admin'
 
 ispconfig_installer_dir: "/root/.ispconfig"
 ispconfig_private_dir: "/var/local/lib/ispconfig/"
