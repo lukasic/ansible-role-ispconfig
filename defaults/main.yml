@@ -26,6 +26,11 @@ mysql_root_password: "{{ mariadb_root_passwd }}"
 snapd_squashfuse: no
 
 #
+# Quota Part
+#
+enable_quota: yes
+
+#
 # Apache Status
 #
 apache_status_acl: []

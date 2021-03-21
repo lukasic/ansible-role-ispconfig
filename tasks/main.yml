@@ -16,6 +16,7 @@
 
 - name: install&configure system quota
   include_tasks: 10_core/quota.yml
+  when: enable_quota
 
 - name: install&configure pure-ftpd
   include_tasks: 10_core/pureftpd.yml
