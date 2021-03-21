@@ -19,6 +19,12 @@ server_cert_ca: "/etc/letsencrypt/live/{{ ansible_fqdn }}/privkey.pem"
 # lukasic.mariadb
 mysql_root_password: "{{ mariadb_root_passwd }}"
 
+
+#
+# Certbot Part
+#
+snapd_squashfuse: no
+
 #
 # Apache Status
 #

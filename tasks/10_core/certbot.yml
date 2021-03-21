@@ -1,12 +1,40 @@
 ---
+# if running inside Proxmox on LXC container, look there
+# https://forum.proxmox.com/threads/ubuntu-snaps-inside-lxc-container-on-proxmox.36463/#post-230060
+
+- name: install squashfuse
+  apt:
+    name:
+      - squashfuse
+      - fuse
+    state: latest
+  when: snapd_squashfuse
+
 - name: install snapd
   apt:
     name:
       - snapd
     state: latest
 
+- name: Install snap core
+  snap:
+    name: core
+    state: present
+
 - name: Install certbot
   snap:
     name: certbot
     classic: yes
     state: present
+
+- name: Check if SSL certificate exists
+  stat: 
+    path: "{{ server_cert_key }}"
+  register: check_ssl_cert
+
+- set_fact:
+    ssl_cert_missing: "{{ check_ssl_cert.stat.exists == false }}"
+
+- name: Generate certbot certificate
+  shell: /snap/bin/certbot certonly -d {{ ansible_fqdn }} --agree-tos --register-unsafely-without-email --standalone
+  when: ssl_cert_missing
