@@ -8,7 +8,7 @@
       dest: "{{ ispconfig_installer_dir }}/ispconfig-create-client.php"
   when: ispconfig_first_install
 
-- name: Create ISPConfig client user
+- name: Create ISPConfig client
   shell: php {{ ispconfig_installer_dir }}/ispconfig-create-client.php
   when: ispconfig_first_install
 

@@ -1,20 +1,30 @@
 <?php
 
 $username = 'admin';
-$password = file_get_contents("{{ ispconfig_api_admin_password }}");
+$password = "{{ ispconfig_api_admin_password }}";
 $password = str_replace("\n","",$password);
 
 $soap_location = 'https://{{ ansible_fqdn }}:7777/remote/index.php';
 $soap_uri = 'https://{{ ansible_fqdn }}:7777/remote/';
 
+$context = stream_context_create([
+    'ssl' => [
+        // set some SSL/TLS specific options
+        'verify_peer' => false,
+        'verify_peer_name' => false,
+        'allow_self_signed' => true
+    ]
+]);
+
 $client = new SoapClient(null, array(
     'location' => $soap_location,
     'uri'      => $soap_uri,
     'trace' => 1,
-    'exceptions' => 1
+    'exceptions' => 1,
+    'stream_context' => $context
 ));
 
-$cust_passwd = file_get_contents("{{ ispconfig_user_password }}");
+$cust_passwd = "{{ ispconfig_user_password }}";
 $cust_passwd = str_replace("\n","",$cust_passwd);
 
 if (strlen($cust_passwd) < 8) {

@@ -32,6 +32,14 @@
     - 20_ispconfig/10_install_or_update.yml
     - 20_ispconfig/20_configure.yml
     - 20_ispconfig/21_create_api_user.yml
+
+- name: create limited account after ispconfig first install
+  include_tasks: 20_ispconfig/22_create_client.yml
+  when: ispconfig_user_password
+
+- name: install ispconfig
+  include_tasks: '{{ item }}'
+  loop:
     - 20_ispconfig/30_apps_site.yml
     - 20_ispconfig/40_ssl.yml
 
