@@ -20,16 +20,16 @@
 - name: create database user for phpmyadmin
   ispconfig_database_user:
     api_url: "{{ ispconfig_url }}"
-    api_user: "{{ ispconfig_admin_username }}"
-    api_pass: "{{ ispconfig_admin_password }}"
+    api_user: "{{ ispconfig_api_admin_username }}"
+    api_pass: "{{ ispconfig_api_admin_password }}"
     db_user: "{{ phpmyadmin_mysql_username }}"
     db_pass: "{{ phpmyadmin_mysql_password }}"
 
 - name: create database for phpmyadmin
   ispconfig_database:
     api_url: "{{ ispconfig_url }}"
-    api_user: "{{ ispconfig_admin_username }}"
-    api_pass: "{{ ispconfig_admin_password }}"
+    api_user: "{{ ispconfig_api_admin_username }}"
+    api_pass: "{{ ispconfig_api_admin_password }}"
     db_name: "{{ phpmyadmin_mysql_database }}"
     db_user: "{{ phpmyadmin_mysql_username }}"
     site: "{{ ansible_fqdn }}"
