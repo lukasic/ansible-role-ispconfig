@@ -1,44 +1,68 @@
-#
-# Source:
-# https://github.com/Uberspace/ansible-mountopts
-# https://github.com/Uberspace/ansible-mountopts/blob/master/library/mountopts.py
-#
-
-"""
-Copyright (c) 2016 uberspace.de
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-"""
-
 from ansible.module_utils.basic import AnsibleModule
 import os.path
 
-try:
-    import fstab
-    HAS_FSTAB_LIB = True
-except:
-    HAS_FSTAB_LIB = False
+
+class Line:
+    ATTRS = ( "device", "path", "fs", "options", "dump", "fsck" )
+
+    def __init__(self, raw):
+        self.raw = raw
+        self.attrs = None
+        self.parse()
+    
+    def parse(self):
+        self.has_mount = False
+        
+        if not self.raw.strip():
+            return
+        
+        if self.raw.strip()[0] == '#':
+            return
+
+        tokens = self.raw.strip().split()
+        if len(tokens) != len(self.ATTRS):
+            return
+        
+        self.attrs = dict(zip(self.ATTRS, tokens))
+        self.has_mount = True
+
+    def get_options(self):
+        return self.attrs['options'].split(',')
+
+    def set_options(self, opts):
+        self.attrs['options'] = ','.join(opts)
+    
+    def __str__(self):
+        if self.has_mount:
+            return '\t'.join([self.attrs[i] for i in self.ATTRS])
+        else:
+            return self.raw
 
 
-def find_mount(ft, directory):
+class Fstab:
+    def __init__(self, path="/etc/fstab"):
+        self.path = path
+        self.lines = []
+        self.read()
+    
+    def read(self):
+        self.lines = []
+        with open(self.path, "r") as f:
+            data = f.read().split('\n')
+        
+        for r in data:
+            l = Line(r)
+            self.lines.append(l)
+    
+    def save(self):
+        data = '\n'.join([str(l) for l in self.lines])
+        with open(self.path, "w") as f:
+            f.write(data)
+
+
+def find_mount(ft, path):
     for l in ft.lines:
-        if l.has_filesystem() and l.directory == directory:
+        if l.has_mount and l.attrs['path'] == path:
             return l
 
 
@@ -58,7 +82,7 @@ def parse_options(options):
 def dump_options(options):
     dumped = []
 
-    for opt, val in options.iteritems():
+    for opt, val in options.items():
         if val is None:
             dumped.append(opt)
         else:
@@ -78,21 +102,17 @@ def main():
         )
     )
 
-    if not HAS_FSTAB_LIB:
-        module.fail_json(msg='missing the `fstab` python module')
-
     if not os.path.exists(module.params['fstab']):
-        module.fail_json(msg='given fstab file does not exist: ' + module.params['fstab'])
+        module.fail_json(msg='fstab file does not exist: ' + module.params['fstab'])
 
     changed = None
 
-    ft = fstab.Fstab()
-    ft.read(module.params['fstab'])
+    fst = Fstab(path=module.params['fstab'])
 
-    line = find_mount(ft, module.params['name'])
+    line = find_mount(fst, module.params['name'])
 
     if not line:
-        odule.fail_json(msg='given mountpoint does not exist: {}. You can create it using the mount-module.'.format(module.params['name']))
+        module.fail_json(msg='mountpoint does not exist: {}.'.format(module.params['name']))
 
     opts = parse_options(line.get_options())
 
@@ -113,10 +133,7 @@ def main():
         raise module.fail_json(msg='parameter "state": unknown value')
 
     line.set_options(dump_options(opts))
-    ft.write(module.params['fstab'])
-
-    if changed is None:
-        raise module.fail_json(msg='bug: no changed value was set')
+    fst.save()
 
     module.exit_json(changed=changed)
 

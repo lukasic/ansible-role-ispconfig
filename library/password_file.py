@@ -1,10 +1,14 @@
 from ansible.module_utils.basic import AnsibleModule
 import os
+import sys
 import string
 
 def generate_password(length):
     chars = string.ascii_letters + string.digits
-    return "".join(chars[ord(c) % len(chars)] for c in os.urandom(length))
+    if sys.version_info.major == 3:
+        return "".join(chars[c % len(chars)] for c in os.urandom(length))
+    else:
+        return "".join(chars[ord(c) % len(chars)] for c in os.urandom(length))
 
 
 def main():
