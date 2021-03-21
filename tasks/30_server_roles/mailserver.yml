@@ -10,6 +10,12 @@
   loop: "{{ postfix_postconf }}"
   notify: restart postfix
 
+- name: deploy /etc/mailname
+  template:
+    src: "postfix/mailname.j2"
+    dest: "/etc/mailname"
+  notify: restart postfix
+
 - name: master.cf
   template:
     src: "postfix/master.cf.j2"
