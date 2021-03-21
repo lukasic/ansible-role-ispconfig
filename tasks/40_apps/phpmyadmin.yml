@@ -43,8 +43,8 @@
 
 - name: ensure {{ phpmyadmin_private_dir }} exists
   file:
-    path: {{ phpmyadmin_private_dir }}
-    state: dir
+    path: "{{ phpmyadmin_private_dir }}"
+    state: directory
 
 - name: test phpmyadmin is installed
   stat: 
