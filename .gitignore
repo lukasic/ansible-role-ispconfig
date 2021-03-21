@@ -1,0 +1,4 @@
+.pyc
+.pyd
+.DS_Store
+__pycache__/
