@@ -28,7 +28,7 @@
 
 - name: install ansible dependencies
   apt:
-    pkg: python-passlib
+    pkg: python3-passlib
 
 - name: disable apache modules
   apache2_module:
