@@ -55,9 +55,6 @@
 - name: install&configure roundcube
   include_tasks: 40_apps/roundcube.yml
 
-- name: create limited account after ispconfig first install
-  include_tasks: 50_user/firstinstall_create_user.yml
-
 - name: install security tools
   include_tasks: 60_enhancements/security.yml
 
