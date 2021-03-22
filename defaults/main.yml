@@ -146,7 +146,7 @@ postfix_postconf_defaults:
   - name: smtpd_helo_required
     value: "yes"
   - name: proxy_read_maps
-    value: $local_recipient_maps $mydestination $virtual_alias_maps $virtual_alias_domains $sender_bcc_maps $virtual_mailbox_maps $virtual_mailbox_domains $relay_recipient_maps $relay_domains $canonical_maps $sender_canonical_maps $recipient_canonical_maps $relocated_maps $transport_maps $mynetworks $smtpd_sender_login_maps
+    value: $local_recipient_maps $mydestination $virtual_alias_maps $virtual_alias_domains $sender_bcc_maps $virtual_mailbox_maps $virtual_mailbox_domains $relay_recipient_maps $relay_domains $canonical_maps $sender_canonical_maps $recipient_canonical_maps $relocated_maps $transport_maps $mynetworks $smtpd_sender_login_maps $sender_dependent_relayhost_maps $smtp_sasl_password_maps
   - name: smtpd_sender_login_maps
     value: proxy:mysql:/etc/postfix/mysql-virtual_sender_login_maps.cf
   - name: relay_recipient_maps
@@ -183,6 +183,10 @@ postfix_postconf_defaults:
     value: proxy:mysql:/etc/postfix/mysql-virtual_domains.cf
   - name: virtual_alias_domains
     value: proxy:mysql:/etc/postfix/mysql-virtual_alias_domains.cf
+  - name: sender_dependent_relayhost_maps
+    value: proxy:mysql:/etc/postfix/mysql-virtual_sender-relayhost.cf
+  - name: smtp_sasl_password_maps
+    value: proxy:mysql:/etc/postfix/mysql-virtual_sender-relayauth.cf, texthash:/etc/postfix/sasl_passwd
 
 postfix_postconf_custom: []
 
