@@ -59,7 +59,7 @@ postfix_postconf_defaults:
   - name: mydestination
     value: "{{ ansible_fqdn }}"
   - name: virtual_alias_maps
-    value: proxy:mysql:/etc/postfix/mysql-virtual_forwardings.cf, proxy:mysql:/etc/postfix/mysql-virtual_email2email.cf
+    value: proxy:mysql:/etc/postfix/mysql-virtual_alias_maps.cf, proxy:mysql:/etc/postfix/mysql-virtual_forwardings.cf, proxy:mysql:/etc/postfix/mysql-virtual_email2email.cf
   - name: smtpd_use_tls
     value: "yes"
   - name: smtpd_tls_key_file
@@ -182,7 +182,7 @@ postfix_postconf_defaults:
   - name: virtual_mailbox_domains
     value: proxy:mysql:/etc/postfix/mysql-virtual_domains.cf
   - name: virtual_alias_domains
-    value: ""
+    value: proxy:mysql:/etc/postfix/mysql-virtual_alias_domains.cf
 
 postfix_postconf_custom: []
 
