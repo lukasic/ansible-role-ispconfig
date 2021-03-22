@@ -187,6 +187,14 @@ postfix_postconf_defaults:
     value: proxy:mysql:/etc/postfix/mysql-virtual_sender-relayhost.cf
   - name: smtp_sasl_password_maps
     value: proxy:mysql:/etc/postfix/mysql-virtual_sender-relayauth.cf, texthash:/etc/postfix/sasl_passwd
+  - name: smtp_sasl_tls_security_options
+    value: noanonymous
+  - name: smtp_dns_support_level
+    value: dnssec
+  - name: smtpd_forbidden_commands
+    value: CONNECT,GET,POST,USER,PASS
+  - name: address_verify_sender_ttl
+    value: 15686s
 
 postfix_postconf_custom: []
 
