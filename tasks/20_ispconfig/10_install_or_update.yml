@@ -3,6 +3,12 @@
 # Preparations - check, cleanup, download sources
 # Determine what to do - install, update, or just continue to reconfiguration
 #
+- name: "Force reinstall"
+  file:
+    path: "{{ ispconfig_private_dir }}/installed-version.txt"
+    state: absent
+  when: ispconfig_force_reinstall | bool
+
 - name: Check if ISPConfig is installed
   stat: 
     path: "{{ ispconfig_private_dir }}/installed-version.txt"
@@ -92,3 +98,4 @@
     url: https://www.ispconfig.org/downloads/ispconfig3_version.txt
     dest: "{{ ispconfig_private_dir }}/installed-version.txt"
   when: ispconfig_first_install or ispconfig_update
+

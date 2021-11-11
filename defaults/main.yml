@@ -222,6 +222,8 @@ dovecot_ssl_cert_file: "{{ server_cert_full }}"
 #
 # ISPConfig
 #
+ispconfig_force_reinstall: no
+
 ispconfig_url: "https://{{ ansible_fqdn }}:7777"
 ispconfig_admin_username: 'admin'
 ispconfig_user_username: "customer"
