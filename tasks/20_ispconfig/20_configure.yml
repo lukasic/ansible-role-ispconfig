@@ -5,7 +5,6 @@
 - name: Install python dependencies
   apt:
     pkg:
-      - python-requests
       - python3-requests
 
 #
