@@ -5,3 +5,6 @@
     pkg:
       - rkhunter
       - binutils
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_extra_security }}"

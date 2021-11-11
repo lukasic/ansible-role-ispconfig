@@ -6,8 +6,14 @@
     value: 'false'
     vtype: boolean
   register: dash_debconf
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_dash }}"
 
 - name: reconfigure dash
   command: dpkg-reconfigure -f noninteractive dash
   when: dash_debconf.changed
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_dash }}"
 

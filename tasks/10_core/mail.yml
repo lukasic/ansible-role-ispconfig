@@ -13,6 +13,9 @@
       - p7zip-full
       - lrzip
       - zip
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_mail }}"
 
 - name: install dovecot
   apt:
@@ -23,22 +26,34 @@
       - dovecot-mysql
       - dovecot-sieve
       - dovecot-lmtpd
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_mail }}"
 
 - name: install getmail4
   apt:
     state: latest
     pkg: getmail4
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_mail }}"
 
 - name: install postgrey
   apt:
     state: latest
     pkg: postgrey
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_mail }}"
 
 - name: install amavis
   apt:
     state: latest
     pkg:
       - amavisd-new
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_mail }}"
 
 - name: install clamav
   apt:
@@ -46,11 +61,17 @@
     pkg:
       - clamav
       - clamav-daemon
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_mail }}"
 
 - name: install spamassassin
   apt:
     pkg:
       - spamassassin
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_mail }}"
 
 #- name: copy our dovecot.conf
 #  template:
@@ -66,3 +87,6 @@
     name: spamassassin
     state: stopped
     enabled: false
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_mail }}"

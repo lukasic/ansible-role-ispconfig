@@ -15,6 +15,9 @@
     - src: "{{ server_cert_key }}"
       dest: /usr/local/ispconfig/interface/ssl/ispserver.key
   notify: restart apache2
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_ssl }}"
 
 - name: Remove ISPConfig certificate relics
   file:
@@ -24,8 +27,14 @@
     - /usr/local/ispconfig/interface/ssl/ispserver.key.secure
     - /usr/local/ispconfig/interface/ssl/ispserver.csr
   notify: restart apache2
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_ssl }}"
 
 - name: Restart apache
   service:
     name: apache2
     state: restarted
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_ssl }}"

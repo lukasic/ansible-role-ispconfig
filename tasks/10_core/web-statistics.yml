@@ -8,9 +8,15 @@
       - libclass-dbi-mysql-perl
       - libtimedate-perl
     state: latest
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_webstats }}"
 
 - name: delete awstats cron file
   file:
     path: /etc/cron.d/awstats
     state: absent
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_webstats }}"
 

@@ -8,40 +8,66 @@
     path: "{{ ispconfig_private_dir }}/installed-version.txt"
     state: absent
   when: ispconfig_force_reinstall | bool
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
 
 - name: Check if ISPConfig is installed
   stat: 
     path: "{{ ispconfig_private_dir }}/installed-version.txt"
   register: ispconfig_version
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
+    - "{{ tag_lukasic_ispconfig_configure }}"
 
 - set_fact:
     ispconfig_first_install: "{{ ispconfig_version.stat.exists == false }}"
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
+    - "{{ tag_lukasic_ispconfig_configure }}"
 
 - name: Ensure {{ ispconfig_installer_dir }} exists
   file:
     path: "{{ ispconfig_installer_dir }}"
     state: directory
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
 
 - name: Fix regression - broken install
   file:
     path: "{{ ispconfig_installer_dir }}/ISPConfig-3-stable.tar.gz"
     state: absent
   when: ispconfig_first_install
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
 
 - name: Download latest ISPConfig
   get_url:
     url: http://www.ispconfig.org/downloads/ISPConfig-3-stable.tar.gz
     dest: "{{ ispconfig_installer_dir }}"
   register: ispconfig3_src
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
 
 - set_fact:
     ispconfig_update: "{{ ispconfig_version.stat.exists and ispconfig3_src.changed }}"
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
 
 - name: Remove old installer if exists
   file:
     path: "{{ ispconfig_installer_dir }}/ispconfig3_install"
     state: absent
   when: ispconfig_first_install or ispconfig_update
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
 
 - name: Extract latest ISPConfig
   unarchive:
@@ -49,6 +75,9 @@
     dest: "{{ ispconfig_installer_dir }}"
     remote_src: yes
   when: ispconfig_first_install or ispconfig_update
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
 
 #
 # Cure vanila config files
@@ -60,12 +89,18 @@
     state: absent
   loop: "{{ postfix_postconf }}"
   when: ispconfig_first_install or ispconfig_update
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
 
 - name: Replace dovecot config with ours
   template:
     src: dovecot/dovecot.conf.j2
     dest: "{{ ispconfig_installer_dir }}/ispconfig3_install/install/tpl/debian_dovecot2.conf.master"
   when: ispconfig_first_install or ispconfig_update
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
 
 #
 # Install or Update ISPConfig
@@ -75,6 +110,9 @@
     src: "ispconfig/autoinstall.ini.j2"
     dest: "{{ ispconfig_installer_dir }}/ispconfig3_install/install/autoinstall.ini"
   when: ispconfig_first_install or ispconfig_update
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
 
 - name: Install ISPConfig
   command: php install.php --autoinstall=autoinstall.ini
@@ -82,6 +120,9 @@
     chdir: "{{ ispconfig_installer_dir }}/ispconfig3_install/install"
   when: ispconfig_first_install
   notify: restart apache2
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
 
 - name: Update ISPConfig
   command: php update.php --autoinstall=autoinstall.ini
@@ -89,6 +130,9 @@
     chdir: "{{ ispconfig_installer_dir }}/ispconfig3_install/install"
   when: ispconfig_update
   notify: restart apache2
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
 
 #
 # Mark ISPConfig as Installed
@@ -98,4 +142,7 @@
     url: https://www.ispconfig.org/downloads/ispconfig3_version.txt
     dest: "{{ ispconfig_private_dir }}/installed-version.txt"
   when: ispconfig_first_install or ispconfig_update
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
 

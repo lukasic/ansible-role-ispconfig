@@ -6,6 +6,10 @@
   apt:
     pkg:
       - python3-requests
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
+    - "{{ tag_lukasic_ispconfig_configure }}"
 
 #
 # Configure ISPConfig
@@ -20,6 +24,10 @@
     ini_option: "{{ item.ini_option }}"
     ini_value: "{{ item.ini_value }}"
   with_items: "{{ ispconfig_server_params }}"
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
+    - "{{ tag_lukasic_ispconfig_configure }}"
 
 - name: Configure ispconfig system params
   ispconfig_system:
@@ -31,6 +39,10 @@
     ini_option: "{{ item.ini_option }}"
     ini_value: "{{ item.ini_value }}"
   with_items: "{{ ispconfig_system_params }}"
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
+    - "{{ tag_lukasic_ispconfig_configure }}"
 
 - name: Configure ISPConfig PHP versions
   ispconfig_server_php:
@@ -39,6 +51,10 @@
     mysql_dbname: _dbispconfig
     php_version: "{{ php_versions[item.version].version }}"
   loop: "{{ php }}"
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
+    - "{{ tag_lukasic_ispconfig_configure }}"
 
 - name: Disable ISPConfig IDS
   ini_file:
@@ -53,3 +69,7 @@
     - section: "ids"
       option: "ids_user_enabled"
       value: "no"
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
+    - "{{ tag_lukasic_ispconfig_configure }}"

@@ -5,3 +5,6 @@
       - pure-ftpd-common
       - pure-ftpd-mysql
     state: latest
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_pureftpd }}"

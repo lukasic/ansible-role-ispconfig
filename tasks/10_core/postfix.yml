@@ -4,8 +4,14 @@
     name: "postfix"
     state: "latest"
     install_recommends: yes
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_postfix }}"
 
 - name: install postfix-mysql
   apt: 
     name: "postfix-mysql"
     state: "latest"
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_postfix }}"

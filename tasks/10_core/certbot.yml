@@ -9,32 +9,53 @@
       - fuse
     state: latest
   when: snapd_squashfuse
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_certbot }}"
 
 - name: install snapd
   apt:
     name:
       - snapd
     state: latest
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_certbot }}"
 
 - name: Install snap core
   snap:
     name: core
     state: present
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_certbot }}"
 
 - name: Install certbot
   snap:
     name: certbot
     classic: yes
     state: present
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_certbot }}"
 
 - name: Check if SSL certificate exists
   stat: 
     path: "{{ server_cert_key }}"
   register: check_ssl_cert
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_certbot }}"
 
 - set_fact:
     ssl_cert_missing: "{{ check_ssl_cert.stat.exists == false }}"
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_certbot }}"
 
 - name: Generate certbot certificate
   shell: /snap/bin/certbot certonly -d {{ ansible_fqdn }} --agree-tos --register-unsafely-without-email --standalone
   when: ssl_cert_missing
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_certbot }}"

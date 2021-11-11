@@ -9,32 +9,50 @@
     regexp: "^{{ item.name }}\\s*="
   loop: "{{ postfix_postconf }}"
   notify: restart postfix
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_postfix }}"
 
 - name: deploy /etc/mailname
   template:
     src: "postfix/mailname.j2"
     dest: "/etc/mailname"
   notify: restart postfix
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_postfix }}"
 
 - name: master.cf
   template:
     src: "postfix/master.cf.j2"
     dest: "/etc/postfix/master.cf" 
   notify: restart postfix
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_postfix }}"
 
 - name: set virtual_alias_maps
   template: 
     src: "postfix/virtual_alias_maps.j2"
     dest: "/etc/postfix/virtual_alias_maps"
   register: virtual_alias_maps
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_postfix }}"
 
 - name: postmap virtual_alias
   command: postmap /etc/postfix/virtual_alias_maps
   when: virtual_alias_maps.changed
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_postfix }}"
 
 - name: delete aliases from /etc/aliases
   command: echo > /etc/aliases
   when: virtual_alias_maps.changed
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_postfix }}"
 
 - name: delete postfix self-signed keys
   file:
@@ -43,6 +61,9 @@
   with_items:
     - smtpd.key
     - smtpd.cert
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_postfix }}"
 
 #
 # dovecot
@@ -51,9 +72,15 @@
   openssl_dhparam:
     path: "{{ dovecot_dh_params }}"
     size: 2048
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_dovecot }}"
 
 - name: ensure we have cured dovecot.conf
   template:
     src: dovecot/dovecot.conf.j2
     dest: /etc/dovecot/dovecot.conf
   notify: restart dovecot
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_dovecot }}"

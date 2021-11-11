@@ -7,8 +7,14 @@
     - src: "ispconfig/create-client.php.j2"
       dest: "{{ ispconfig_installer_dir }}/ispconfig-create-client.php"
   when: ispconfig_first_install
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
 
 - name: Create ISPConfig client
   shell: php {{ ispconfig_installer_dir }}/ispconfig-create-client.php
   when: ispconfig_first_install
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
 

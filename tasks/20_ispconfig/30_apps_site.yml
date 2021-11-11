@@ -17,6 +17,10 @@
     api_pass: "{{ ispconfig_api_admin_password }}"
     domain: "{{ ansible_fqdn }}"
   register: apps_site
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
+    - "{{ tag_lukasic_ispconfig_apps }}"
 
 - name: Configure Apps Site
   ispconfig_web_domain_php_ini:
@@ -35,6 +39,10 @@
       value: "900"
     - option: "max_input_time"
       value: "900"
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
+    - "{{ tag_lukasic_ispconfig_apps }}"
 
 - name: Configure apache directives for Apps site
   ispconfig_web_domain_apache_directives:
@@ -44,8 +52,16 @@
     domain: "{{ ansible_fqdn }}"
     directives: |
       TimeOut 1800
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
+    - "{{ tag_lukasic_ispconfig_apps }}"
 
 - name: Do some ISPConfig server magic
   shell: /usr/local/ispconfig/server/server.sh
   when: apps_site.changed
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
+    - "{{ tag_lukasic_ispconfig_apps }}"
 

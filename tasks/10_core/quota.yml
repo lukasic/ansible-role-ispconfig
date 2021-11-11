@@ -5,16 +5,25 @@
       - quota
       - quotatool
     state: latest
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_quota }}"
 
 - name: install pip
   apt:
     name:
       - python3-pip
     state: latest
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_quota }}"
 
 - name: install python dependencies for mountopts module
   pip:
     name: fstab
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_quota }}"
 
 - name: reconfigure fstab with quota options
   mountopts:
@@ -29,16 +38,28 @@
     - option: jqfmt
       value: vfsv0
   register: fstab_quota
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_quota }}"
 
 - name: "Remount /"
   command: mount -o remount /
   when: fstab_quota.changed
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_quota }}"
 
 - name: 'quota recalc'
   command: 'quotacheck -avugm'
   when: fstab_quota.changed
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_quota }}"
 
 - name: 'set quota on'
   command: 'quotaon -avug'
   when: fstab_quota.changed
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_quota }}"
 

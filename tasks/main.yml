@@ -1,28 +1,44 @@
 ---
 - name: configure shell
   include_tasks: 10_core/dash.yml
+  tags:
+    - "{{ tag_lukasic_all }}"
 
 - name: install certbot
   include_tasks: 10_core/certbot.yml
+  tags:
+    - "{{ tag_lukasic_all }}"
 
 - name: install postfix
   include_tasks: 10_core/postfix.yml
+  tags:
+    - "{{ tag_lukasic_all }}"
 
 - name: install&configure apache2
   include_tasks: 10_core/apache2.yml
+  tags:
+    - "{{ tag_lukasic_all }}"
 
 - name: install mail daemons
   include_tasks: 10_core/mail.yml
+  tags:
+    - "{{ tag_lukasic_all }}"
 
 - name: install&configure system quota
   include_tasks: 10_core/quota.yml
   when: enable_quota
+  tags:
+    - "{{ tag_lukasic_all }}"
 
 - name: install&configure pure-ftpd
   include_tasks: 10_core/pureftpd.yml
+  tags:
+    - "{{ tag_lukasic_all }}"
 
 - name: install&configure web statistics tools
   include_tasks: 10_core/web-statistics.yml
+  tags:
+    - "{{ tag_lukasic_all }}"
 
 
 - name: install ispconfig
@@ -32,29 +48,45 @@
     - 20_ispconfig/10_install_or_update.yml
     - 20_ispconfig/20_configure.yml
     - 20_ispconfig/21_create_api_user.yml
+  tags:
+    - "{{ tag_lukasic_all }}"
 
 - name: create limited account after ispconfig first install
   include_tasks: 20_ispconfig/22_create_client.yml
   when: ispconfig_user_password
+  tags:
+    - "{{ tag_lukasic_all }}"
 
 - name: install ispconfig
   include_tasks: '{{ item }}'
   loop:
     - 20_ispconfig/30_apps_site.yml
     - 20_ispconfig/40_ssl.yml
+  tags:
+    - "{{ tag_lukasic_all }}"
 
 - name: configure mailserver role
   include_tasks: 30_server_roles/mailserver.yml
+  tags:
+    - "{{ tag_lukasic_all }}"
 
 - name: configure ftp role
   include_tasks: 30_server_roles/pureftpd.yml
+  tags:
+    - "{{ tag_lukasic_all }}"
 
 - name: install&configure phpmyadmin
   include_tasks: 40_apps/phpmyadmin.yml
+  tags:
+    - "{{ tag_lukasic_all }}"
 
 - name: install&configure roundcube
   include_tasks: 40_apps/roundcube.yml
+  tags:
+    - "{{ tag_lukasic_all }}"
 
 - name: install security tools
   include_tasks: 60_enhancements/security.yml
+  tags:
+    - "{{ tag_lukasic_all }}"
 

@@ -11,12 +11,18 @@
       - libruby
       - mcrypt
   notify: restart apache2
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_apache2 }}"
 
 - name: remove apache2-doc
   apt:
     state: absent
     name: apache2-doc
   notify: reload apache2
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_apache2 }}"
 
 - name: install apache mods
   apt:
@@ -25,10 +31,16 @@
       - libapache2-mod-passenger
       - libapache2-mod-python
       - libapache2-mod-php
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_apache2 }}"
 
 - name: install ansible dependencies
   apt:
     pkg: python3-passlib
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_apache2 }}"
 
 - name: disable apache modules
   apache2_module:
@@ -37,6 +49,9 @@
   loop:
     - prefork
   notify: reload apache2
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_apache2 }}"
 
 - name: enable apache modules
   apache2_module:
@@ -61,11 +76,17 @@
     - proxy
     - expires
   notify: reload apache2
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_apache2 }}"
 
 - template:
     src: apache2/status.conf.j2
     dest: /etc/apache2/mods-available/status.conf
   notify: reload apache2
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_apache2 }}"
 
 - name: htpasswd for server-status
   htpasswd:
@@ -76,4 +97,7 @@
     group: root
     mode: 0644
   notify: reload apache2
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_apache2 }}"
 

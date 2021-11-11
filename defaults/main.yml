@@ -1,5 +1,46 @@
 ---
 #
+# Role Tags
+#
+tag_lukasic_ispconfig: "ispconfig"
+tag_lukasic_ispconfig_apache2: "ispconfig-apache2"
+tag_lukasic_ispconfig_certbot: "ispconfig-certbot"
+tag_lukasic_ispconfig_dash: "ispconfig-dash"
+tag_lukasic_ispconfig_mail: "ispconfig-mail"
+tag_lukasic_ispconfig_postfix: "ispconfig-postfix"
+tag_lukasic_ispconfig_pureftpd: "ispconfig-pureftpd"
+tag_lukasic_ispconfig_quota: "ispconfig-quota"
+tag_lukasic_ispconfig_webstats: "ispconfig-webstats"
+tag_lukasic_ispconfig_secrets: "ispconfig-secrets"
+tag_lukasic_ispconfig_core: "ispconfig-core"
+tag_lukasic_ispconfig_configure: "ispconfig-configure"
+tag_lukasic_ispconfig_apps: "ispconfig-apps"
+tag_lukasic_ispconfig_ssl: "ispconfig-ssl"
+tag_lukasic_ispconfig_dovecot: "ispconfig-dovecot"
+tag_lukasic_ispconfig_phpmyadmin: "ispconfig-phpmyadmin"
+tag_lukasic_ispconfig_roundcube: "ispconfig-roundcube"
+tag_lukasic_ispconfig_extra_security: "ispconfig-extra-security"
+
+tag_lukasic_all:
+  - "{{ tag_lukasic_ispconfig }}"
+  - "{{ tag_lukasic_ispconfig_apache2 }}"
+  - "{{ tag_lukasic_ispconfig_certbot }}"
+  - "{{ tag_lukasic_ispconfig_dash }}"
+  - "{{ tag_lukasic_ispconfig_mail }}"
+  - "{{ tag_lukasic_ispconfig_postfix }}"
+  - "{{ tag_lukasic_ispconfig_pureftpd }}"
+  - "{{ tag_lukasic_ispconfig_quota }}"
+  - "{{ tag_lukasic_ispconfig_webstats }}"
+  - "{{ tag_lukasic_ispconfig_secrets }}"
+  - "{{ tag_lukasic_ispconfig_core }}"
+  - "{{ tag_lukasic_ispconfig_configure }}"
+  - "{{ tag_lukasic_ispconfig_apps }}"
+  - "{{ tag_lukasic_ispconfig_ssl }}"
+  - "{{ tag_lukasic_ispconfig_dovecot }}"
+  - "{{ tag_lukasic_ispconfig_phpmyadmin }}"
+  - "{{ tag_lukasic_ispconfig_extra_security }}"
+
+#
 # Required to be set
 # 
 

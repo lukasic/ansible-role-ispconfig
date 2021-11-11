@@ -13,6 +13,10 @@
       length: 24
     - name: ispconfig_api_roundcube_password
       length: 24
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
+    - "{{ tag_lukasic_ispconfig_configure }}"
 
 - name: Deploy post-install ISPConfig scripts
   template: 
@@ -22,7 +26,15 @@
     - src: "ispconfig/create-api-users.sql.j2"
       dest: "{{ ispconfig_installer_dir }}/ispconfig-create-api-users.sql"
   when: ispconfig_first_install
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
+    - "{{ tag_lukasic_ispconfig_configure }}"
 
 - name: Create ISPConfig API users
   shell: cat {{ ispconfig_installer_dir }}/ispconfig-create-api-users.sql | mysql _dbispconfig
   when: ispconfig_first_install
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_core }}"
+    - "{{ tag_lukasic_ispconfig_configure }}"

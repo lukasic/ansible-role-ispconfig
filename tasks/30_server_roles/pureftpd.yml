@@ -10,12 +10,18 @@
     - name: VIRTUALCHROOT
       value: "true"
   notify: restart pure-ftpd-mysql
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_pureftpd }}"
 
 - name: Generate Diffie-Hellman parameters
   openssl_dhparam:
     path: /etc/ssl/private/pure-ftpd-dhparams.pem
     size: 2048
   notify: restart pure-ftpd-mysql
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_pureftpd }}"
 
 #
 # todo: bug - letsencrypt renew
@@ -27,12 +33,18 @@
 - name: create pureftpd cert file
   shell: cat "{{ pureftpd_ssl_key_file }}" "{{ pureftpd_ssl_cert_file }}" > /etc/ssl/private/pure-ftpd.pem
   notify: restart pure-ftpd-mysql
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_pureftpd }}"
 
 - name: enable ftps
   copy:
     src: pureftpd/true-file
     dest: /etc/pure-ftpd/conf/TLS
   notify: restart pure-ftpd-mysql
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_pureftpd }}"
 
 - name: copy config files
   copy:
@@ -41,6 +53,9 @@
   notify: restart pure-ftpd-mysql
   loop:
     - PassivePortRange
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_pureftpd }}"
 
 - name: copy templated config files
   template:
@@ -49,6 +64,9 @@
   notify: restart pure-ftpd-mysql
   loop:
     - LimitRecursion
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_pureftpd }}"
 
 - name: fix pure-ftpd "out of memory bug"
   copy:
@@ -56,4 +74,7 @@
     dest: /etc/rc.local
     mode: 0755
   when: bugfix_deb10_rclocal_ignore_rlimit_data == "yes"
+  tags:
+    - "{{ tag_lukasic_ispconfig }}"
+    - "{{ tag_lukasic_ispconfig_pureftpd }}"
 
